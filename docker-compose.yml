@@ -1,0 +1,42 @@
+version: "3.7"
+
+services:
+  webapp:
+    container_name: webapp
+    build:
+      context: .
+    ports:
+      - "8000:8000"
+    networks:
+      webapp-network:
+    volumes:
+      - type: volume
+        source: web-static
+        target: /app/static
+
+  webproxy:
+    image: nginx
+    container_name: webproxy
+    restart: always
+    depends_on:
+      - "webapp"
+    ports:
+      - "8080:8000"
+    networks:
+      webapp-network:
+    volumes:
+      - type: bind
+        source: ./nginx_conf/
+        target: /etc/nginx/conf.d
+      - type: volume
+        source: web-static
+        target: /var/www-data
+
+networks:
+  webapp-network:
+    ipam:
+      config:
+        - subnet: 192.168.100.0/24
+
+volumes:
+  web-static:
